@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#c45c2a">
+  <title>Calendario de Actividades</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <section class="sync-banner">
+      <div>
+        <p class="eyebrow">Multidispositivo</p>
+        <strong id="syncStatus">Modo local listo</strong>
+      </div>
+        <div class="sync-actions">
+          <input id="authEmailInput" type="email" class="sync-input" placeholder="tu@email.com">
+          <input id="authPasswordInput" type="password" class="sync-input" placeholder="Tu contraseña">
+          <button id="registerBtn" class="ghost-button compact-button" type="button">Registrarme</button>
+          <button id="loginBtn" class="ghost-button compact-button" type="button">Entrar</button>
+          <button id="syncNowBtn" class="ghost-button compact-button" type="button">Sincronizar</button>
+          <button id="logoutBtn" class="ghost-button compact-button hidden" type="button">Salir</button>
+        <button id="installAppBtn" class="ghost-button compact-button" type="button">Instalar app</button>
+      </div>
+    </section>
+
+    <header class="hero">
+      <div class="hero-copyblock">
+        <p class="eyebrow">Planificador mensual</p>
+        <h1>Calendario web con actividades</h1>
+        <p class="hero-copy">
+            Organiza tareas, reuniones y recordatorios con categor&iacute;as, prioridad, estado y una agenda de pr&oacute;ximos eventos.
+        </p>
+      </div>
+      <section class="hero-stats" aria-label="Resumen rapido">
+        <article class="stat-card">
+          <span class="stat-label">Hoy</span>
+          <strong id="todayCount">0</strong>
+          <span class="stat-detail">actividades programadas</span>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Pendientes</span>
+          <strong id="pendingCount">0</strong>
+          <span class="stat-detail">por completar</span>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Mes</span>
+          <strong id="monthCount">0</strong>
+          <span class="stat-detail">registros visibles</span>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Atrasadas</span>
+          <strong id="overdueCount">0</strong>
+          <span class="stat-detail">pendientes fuera de plazo</span>
+        </article>
+      </section>
+    </header>
+
+    <main class="workspace">
+      <section class="calendar-card">
+        <section class="toolbar">
+          <div class="month-controls">
+            <button id="prevMonth" type="button" aria-label="Mes anterior">&#8592;</button>
+            <div>
+              <p id="periodLabel" class="toolbar-label">Mes actual</p>
+              <h2 id="monthLabel"></h2>
+            </div>
+            <button id="nextMonth" type="button" aria-label="Mes siguiente">&#8594;</button>
+          </div>
+          <div class="view-switch" aria-label="Vistas del calendario">
+            <button class="view-button is-active" data-view="month" type="button">Mes</button>
+            <button class="view-button" data-view="week" type="button">Semana</button>
+              <button class="view-button" data-view="day" type="button">D&iacute;a</button>
+          </div>
+          <div class="toolbar-actions">
+            <button id="todayBtn" class="ghost-button" type="button">Ir a hoy</button>
+            <button id="exportPdfBtn" class="ghost-button" type="button">Descargar PDF</button>
+            <button id="importBtn" class="ghost-button" type="button">Importar</button>
+            <button id="newActivityBtn" class="primary-button" type="button">Nueva actividad</button>
+            <input id="importInput" type="file" accept="application/json" class="hidden">
+          </div>
+        </section>
+
+        <section class="filters" aria-label="Filtros">
+          <label class="filter-field search-field">
+            <span>Buscar</span>
+            <input id="searchInput" type="search" placeholder="Titulo o descripcion">
+          </label>
+          <label class="filter-field">
+            <span>Categoria</span>
+            <select id="categoryFilter">
+              <option value="all">Todas</option>
+            </select>
+          </label>
+          <label class="filter-field">
+            <span>Estado</span>
+            <select id="statusFilter">
+              <option value="all">Todos</option>
+              <option value="pending">Pendiente</option>
+              <option value="done">Completada</option>
+            </select>
+          </label>
+          <label class="filter-field">
+            <span>Prioridad</span>
+            <select id="priorityFilter">
+              <option value="all">Todas</option>
+              <option value="high">Alta</option>
+              <option value="medium">Media</option>
+              <option value="low">Baja</option>
+            </select>
+          </label>
+          <label class="filter-field">
+            <span>Favoritas</span>
+            <select id="favoriteFilter">
+              <option value="all">Todas</option>
+              <option value="favorite">Solo favoritas</option>
+            </select>
+          </label>
+          <button id="clearFiltersBtn" class="ghost-button compact-button" type="button">Limpiar filtros</button>
+        </section>
+
+        <section class="block-legend" aria-label="Tipos de bloque">
+          <span class="legend-item block-type-class"><span class="legend-dot"></span>Clases</span>
+          <span class="legend-item block-type-study"><span class="legend-dot"></span>Estudio</span>
+          <span class="legend-item block-type-personal"><span class="legend-dot"></span>Tiempo personal</span>
+          <span class="legend-item block-type-work"><span class="legend-dot"></span>Otros bloques</span>
+        </section>
+
+        <section id="weekdaysRow" class="weekdays" aria-hidden="true">
+          <span>Lun</span>
+          <span>Mar</span>
+          <span>Mie</span>
+          <span>Jue</span>
+          <span>Vie</span>
+          <span>Sab</span>
+          <span>Dom</span>
+        </section>
+
+        <section id="calendarGrid" class="calendar-grid" aria-label="Calendario mensual"></section>
+      </section>
+
+      <aside class="sidebar">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Agenda</p>
+              <h3>Pr&oacute;ximas actividades</h3>
+            </div>
+            <span id="upcomingCount" class="panel-pill">0</span>
+          </div>
+          <div id="upcomingList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">D&iacute;a seleccionado</p>
+              <h3 id="selectedDateLabel">Selecciona un d&iacute;a</h3>
+            </div>
+            <div class="panel-actions">
+              <button id="planDayBtn" class="ghost-button compact-button" type="button">Planear mi d&iacute;a</button>
+              <button id="selectedDateAddBtn" class="ghost-button compact-button" type="button">Agregar</button>
+            </div>
+          </div>
+          <div id="selectedDateList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">An&aacute;lisis</p>
+              <h3>Resumen por categor&iacute;a</h3>
+            </div>
+          </div>
+          <div id="categorySummaryList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Plantillas</p>
+              <h3>Rutinas listas</h3>
+            </div>
+          </div>
+          <div id="templateList" class="template-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Perfil acad&eacute;mico</p>
+              <h3>Tu contexto de estudio</h3>
+            </div>
+          </div>
+          <div class="profile-grid">
+            <label>
+              Carrera
+              <input id="academicCareerInput" type="text" maxlength="80" placeholder="Ej. Ingenieria Civil">
+            </label>
+            <label>
+              Universidad
+              <input id="academicUniversityInput" type="text" maxlength="100" placeholder="Ej. Universidad de Chile">
+            </label>
+            <label>
+              Ano
+              <input id="academicYearInput" type="text" maxlength="20" placeholder="Ej. 1°, 2°, 3°">
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Ramos</p>
+              <h3>Seguimiento por ramo</h3>
+            </div>
+          </div>
+          <label class="profile-grid">
+            <span>Formato por linea</span>
+            <textarea id="subjectTrackerInput" rows="7" placeholder="Calculo|62|5.8|Parcial 12-04, Examen 28-06"></textarea>
+          </label>
+          <div id="subjectTrackerList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Semestre</p>
+              <h3>Simulador de semestre</h3>
+            </div>
+            <button id="generateSemesterBtn" class="ghost-button compact-button" type="button">Planificar</button>
+          </div>
+          <label class="profile-grid">
+            <span>Ramos del semestre</span>
+            <textarea id="semesterSubjectsInput" rows="6" placeholder="Calculo|3|2|Mie 10:00&#10;Fisica|2|1|Lun 08:30"></textarea>
+          </label>
+          <div id="semesterLoadList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Objetivos</p>
+              <h3>Metas semanales</h3>
+            </div>
+          </div>
+          <div id="weeklyGoalsList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Productividad</p>
+              <h3>Gr&aacute;ficos semanales</h3>
+            </div>
+          </div>
+          <div id="weeklyChart" class="stack-list"></div>
+          <div id="timeByCategoryList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Seguimiento</p>
+              <h3>Actividades atrasadas</h3>
+            </div>
+            <span id="overdueListCount" class="panel-pill">0</span>
+          </div>
+          <div id="overdueList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Plan inteligente</p>
+              <h3>Huecos y sugerencias</h3>
+            </div>
+            <span id="freeSlotsCount" class="panel-pill">0</span>
+          </div>
+          <div id="freeSlotsList" class="stack-list"></div>
+          <div id="dayPlanList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Automatizaciones</p>
+              <h3>Si pasa esto, haz esto</h3>
+            </div>
+            <button id="runAutomationBtn" class="ghost-button compact-button" type="button">Ejecutar</button>
+          </div>
+          <div id="automationList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Replanificaci&oacute;n</p>
+              <h3>Redistribuir carga</h3>
+            </div>
+            <button id="replanBtn" class="ghost-button compact-button" type="button">Sugerir</button>
+          </div>
+          <div id="replanList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Bienestar</p>
+              <h3>Modo no burnout</h3>
+            </div>
+            <span id="wellbeingScore" class="panel-pill">0</span>
+          </div>
+          <div id="wellbeingList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Retroalimentaci&oacute;n</p>
+              <h3>C&oacute;mo fue tu d&iacute;a</h3>
+            </div>
+          </div>
+          <div class="mood-actions">
+            <button class="mood-button" data-mood="great" type="button">😃</button>
+            <button class="mood-button" data-mood="okay" type="button">😐</button>
+            <button class="mood-button" data-mood="bad" type="button">😞</button>
+          </div>
+          <div id="historyInsightList" class="stack-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Modo vida real</p>
+              <h3>Qu&eacute; hacer ahora</h3>
+            </div>
+          </div>
+          <div id="liveModeList" class="stack-list"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Apoyo</p>
+              <h3>Mensaje para ti</h3>
+            </div>
+          </div>
+          <div id="supportMessageList" class="stack-list"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="toolbar-label">Notas r&aacute;pidas</p>
+              <h3 id="quickNoteTitle">Post-it del d&iacute;a</h3>
+            </div>
+          </div>
+          <div class="quick-note-card">
+            <textarea id="quickNoteInput" rows="8" placeholder="Escribe una idea, pendiente o recordatorio corto..."></textarea>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="activityDialog" class="activity-dialog">
+    <form id="activityForm" method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="toolbar-label">Actividad</p>
+          <h3 id="dialogTitle">Nueva actividad</h3>
+        </div>
+        <button id="closeDialogBtn" class="icon-button" type="button" aria-label="Cerrar">x</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Fecha
+          <input id="activityDate" name="activityDate" type="date" required>
+        </label>
+        <label>
+          Hora
+          <input id="activityTime" name="activityTime" type="time">
+        </label>
+      </div>
+
+      <label>
+        Titulo
+        <input id="activityTitle" name="activityTitle" type="text" maxlength="60" placeholder="Ej. Reunion de equipo" required>
+      </label>
+
+      <label>
+        Descripcion
+        <textarea id="activityDescription" name="activityDescription" rows="4" maxlength="220" placeholder="Detalles opcionales"></textarea>
+      </label>
+
+      <div class="form-grid">
+        <label>
+          Ubicacion
+          <input id="activityLocation" name="activityLocation" type="text" maxlength="80" placeholder="Ej. Oficina o videollamada">
+        </label>
+        <label>
+          Duracion
+          <input id="activityDuration" name="activityDuration" type="number" min="0" max="1440" step="15" placeholder="Minutos">
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Repeticion
+          <select id="activityRecurrence" name="activityRecurrence">
+            <option value="none">No repetir</option>
+            <option value="daily">Diaria</option>
+            <option value="weekly">Semanal</option>
+            <option value="monthly">Mensual</option>
+          </select>
+        </label>
+      </div>
+
+      <label>
+        Subtareas
+        <textarea id="activityChecklist" name="activityChecklist" rows="4" maxlength="320" placeholder="Una subtarea por linea. Usa [x] al inicio para marcar completada."></textarea>
+      </label>
+
+      <div class="form-grid">
+        <label>
+          Categoria
+          <select id="activityCategory" name="activityCategory">
+            <option value="Trabajo">Trabajo</option>
+            <option value="Estudio">Estudio</option>
+            <option value="Personal">Personal</option>
+            <option value="Salud">Salud</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </label>
+        <label>
+          Prioridad
+          <select id="activityPriority" name="activityPriority">
+            <option value="medium">Media</option>
+            <option value="high">Alta</option>
+            <option value="low">Baja</option>
+          </select>
+        </label>
+      </div>
+
+      <label>
+        Estado
+        <select id="activityStatus" name="activityStatus">
+          <option value="pending">Pendiente</option>
+          <option value="done">Completada</option>
+        </select>
+      </label>
+
+      <div class="form-grid">
+        <label>
+          Repetir hasta
+          <input id="activityRepeatUntil" name="activityRepeatUntil" type="date">
+        </label>
+        <label class="checkbox-field">
+          Todo el d&iacute;a
+          <input id="activityAllDay" name="activityAllDay" type="checkbox">
+        </label>
+      </div>
+
+      <label class="checkbox-field">
+        Marcar como favorita
+        <input id="activityFavorite" name="activityFavorite" type="checkbox">
+      </label>
+
+      <div class="dialog-actions">
+        <button id="deleteActivityBtn" class="danger-button hidden" type="button">Eliminar</button>
+        <button id="duplicateActivityBtn" class="ghost-button hidden" type="button">Duplicar</button>
+        <button class="ghost-button" type="button" id="cancelDialogBtn">Cancelar</button>
+        <button class="primary-button" type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="templateDialog" class="activity-dialog">
+    <form id="templateForm" method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="toolbar-label">Plantilla</p>
+          <h3 id="templateDialogTitle">Configurar plantilla</h3>
+        </div>
+        <button id="closeTemplateDialogBtn" class="icon-button" type="button" aria-label="Cerrar">x</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Desde
+          <input id="templateStartDate" type="date" required>
+        </label>
+        <label>
+          Hasta
+          <input id="templateUntilDate" type="date" required>
+        </label>
+      </div>
+
+      <label>
+        Tipo de repeticion
+        <select id="templateRecurrence">
+          <option value="weekly">Semanal</option>
+          <option value="daily">Diaria</option>
+        </select>
+      </label>
+
+      <label>
+        Horarios y bloques
+        <textarea id="templateLines" rows="9" placeholder="Formato: Lun|08:30|120|Clases algebra|Campus|Estudio|high"></textarea>
+      </label>
+
+      <p class="activity-description">
+        Usa una l&iacute;nea por bloque. Formato: dia|hora|duracion|minutos|titulo|lugar|categoria|prioridad.
+        Puedes usar `Todos` como d&iacute;a y `todo-dia` como hora.
+      </p>
+
+      <div class="dialog-actions">
+        <button class="ghost-button" type="button" id="cancelTemplateDialogBtn">Cancelar</button>
+        <button class="ghost-button" type="submit">Guardar configuracion</button>
+        <button class="primary-button" type="button" id="applyTemplateConfigBtn">Aplicar al calendario</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="activityTemplate">
+    <article class="activity-chip" tabindex="0" role="button"></article>
+  </template>
+
+  <script src="node_modules/@supabase/supabase-js/dist/umd/supabase.js"></script>
+  <script src="pwa.js"></script>
+  <script src="jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+  <script src="sync.js"></script>
+</body>
+</html>

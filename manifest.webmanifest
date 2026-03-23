@@ -1,0 +1,23 @@
+{
+  "name": "Calendario Vida Real",
+  "short_name": "Calendario",
+  "description": "Calendario inteligente con productividad, bienestar y planificacion diaria.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5efe4",
+  "theme_color": "#c45c2a",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
